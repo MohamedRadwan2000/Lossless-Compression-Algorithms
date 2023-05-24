@@ -7,9 +7,9 @@ class ArithmeticEncoding:
     ArithmeticEncoding is a class for building arithmetic encoding.
     """
 
-    def __init__(self):
-        getcontext().prec = 9999
-        print (getcontext().prec)
+    def __init__(self , message):
+        getcontext().prec = 16
+        self.probability_table = self._get_probability_table(self._create_frequency_table(message))
 
     def _get_probability_table(self, frequency_table):
         """
@@ -19,7 +19,7 @@ class ArithmeticEncoding:
 
         probability_table = {}
         for key, value in frequency_table.items():
-            probability_table[key] = value/total_frequency
+            probability_table[key] = (value/total_frequency)
 
         return probability_table
 
@@ -67,7 +67,6 @@ class ArithmeticEncoding:
         Encodes a message.
         """
 
-        self.probability_table = self._get_probability_table(self._create_frequency_table(message))
         encoder = []
 
         start = Decimal(0.0)

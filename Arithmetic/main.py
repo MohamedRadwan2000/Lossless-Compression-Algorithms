@@ -1,62 +1,43 @@
 import pyae
 from decimal import Decimal
 import struct
-from decimal import getcontext
-import decimal
-#import numpy as np
-
-AE = pyae.ArithmeticEncoding()
 
 # Read message from file
 with open('input.txt', 'r') as file:
     original_msg = file.read().strip()
 
-#print("Original Message: {msg}".format(msg=original_msg))
+AE = pyae.ArithmeticEncoding(original_msg)
 
-# Encode the message
-encoder, encoded_msg = AE.encode(original_msg)
-import sys
-object_size1 = sys.getsizeof(original_msg)
-object_size = sys.getsizeof(encoded_msg)
-print(object_size1)
-print(object_size)
-my_object = "Hello, World!"
-object_size = sys.getsizeof(my_object)
-print(object_size)
+MESSAGE_SIZE = 9
+encoded_msg_list = []
+last_message_len = len(original_msg) % MESSAGE_SIZE
 
-print("Encoded Message: {msg}".format(msg=encoded_msg))
-"""
-# Convert decimal number to binary
-binary_data = struct.pack('!d', encoded_msg)
+print("===" , last_message_len)
+msg = ""
+for idx in range(0,len(original_msg) ,MESSAGE_SIZE):
+    # Encode the message
+    encoder, encoded_msg = AE.encode(original_msg[idx:idx+MESSAGE_SIZE])
+    encoded_msg_list.append(encoded_msg)
+    msg +=str(encoded_msg)[2:]
+    binary_data = struct.pack('d', encoded_msg)
+    with open('encoded.bin', 'ab') as file:
+        file.write(binary_data)
 
-# Write binary data to file
+decoded = ""
 
-#binary_data = encoded_msg.to_bytes(4501, byteorder='big')
-with open('encoded.bin', 'wb') as file:
-    file.write(binary_data)
-
-"""
-
-"""
-higher_prec_msg = np.float16(encoded_msg)
-
-# Write to file
-with open('encoded.bin', 'wb') as file:
-    file.write(higher_prec_msg.tobytes())
-
-# Read binary data from file
 with open('encoded.bin', 'rb') as file:
     binary_data = file.read()
 
-#dec_num = decimal.Decimal(int.from_bytes(binary_data, byteorder='big')) / (10 ** decimal.getcontext().prec)
+for idx in range(len(encoded_msg_list)):
+    # Read binary data from file
+    data = struct.unpack("d",binary_data[idx*8:idx*8+8])
 
-# Unpack binary data to decimal number
-encoded_msg = np.frombuffer(binary_data, dtype=np.float16)[0]
-#print(struct.unpack('!d', binary_data))
-print("Encoded Message: {msg}".format(msg=encoded_msg))
-"""
-# Decode the message
-decoder, decoded_msg = AE.decode(encoded_msg=Decimal(encoded_msg), msg_length=len(original_msg))
-#print("Decoded Message: {msg}".format(msg=decoded_msg))
+    # Decode the message
+    decoder, decoded_msg = AE.decode( Decimal(data[0]), MESSAGE_SIZE)
+    #print(decoded_msg)
+    decoded +=decoded_msg
 
-print("Message Decoded Successfully? {result}".format(result=original_msg == decoded_msg))
+if decoded == original_msg:
+    print("menio is the best")
+else:
+    print("fuck menio")
