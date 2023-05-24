@@ -16,7 +16,7 @@ print("===" , last_message_len)
 msg = ""
 for idx in range(0,len(original_msg) ,MESSAGE_SIZE):
     # Encode the message
-    encoder, encoded_msg = AE.encode(original_msg[idx:idx+MESSAGE_SIZE])
+    encoded_msg = AE.encode(original_msg[idx:idx+MESSAGE_SIZE])
     encoded_msg_list.append(encoded_msg)
     msg +=str(encoded_msg)[2:]
     binary_data = struct.pack('d', encoded_msg)
@@ -33,8 +33,8 @@ for idx in range(len(encoded_msg_list)):
     data = struct.unpack("d",binary_data[idx*8:idx*8+8])
 
     # Decode the message
-    decoder, decoded_msg = AE.decode( Decimal(data[0]), MESSAGE_SIZE)
-    #print(decoded_msg)
+    decoded_msg = AE.decode( Decimal(data[0]), MESSAGE_SIZE)
+    print(decoded_msg)
     decoded +=decoded_msg
 
 if decoded == original_msg:

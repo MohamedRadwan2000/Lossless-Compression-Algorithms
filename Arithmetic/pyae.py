@@ -10,7 +10,16 @@ class ArithmeticEncoding:
     def __init__(self , message):
         getcontext().prec = 16
         self.probability_table = self._get_probability_table(self._create_frequency_table(message))
+        self.prefex_sum = self._get_prefex_sum()
 
+    def _get_prefex_sum(self):
+        prefex_sum = {}
+        sum = 0.0
+        for key, value in self.probability_table.items():
+            prefex_sum[key] = sum
+            sum += value
+        return prefex_sum
+    
     def _get_probability_table(self, frequency_table):
         """
         Calculates the probability table out of the frequency table.
@@ -38,19 +47,31 @@ class ArithmeticEncoding:
 
         return (last_stage_min + last_stage_max)/2
 
-    def _process_stage(self, stage_min, stage_max):
+    def _process_stage_decode(self, stage_min, stage_max, encoded_msg):
         """
         Processing a stage in the encoding/decoding process.
         """
-        stage_probs = {}
+        
         stage_domain = stage_max - stage_min
-        for term_idx in range(len(self.probability_table.items())):
-            term = list(self.probability_table.keys())[term_idx]
-            term_prob = Decimal(self.probability_table[term])
-            cum_prob = term_prob * stage_domain + stage_min
-            stage_probs[term] = [stage_min, cum_prob]
-            stage_min = cum_prob
-        return stage_probs
+
+        for msg_term, value in self.probability_table.items():
+            term_prob = Decimal(value)
+            start = Decimal(self.prefex_sum[msg_term]) * stage_domain + stage_min
+            end = term_prob * stage_domain + start
+            if encoded_msg >= start and encoded_msg <= end:
+                return msg_term, start, end
+                
+
+    def _process_stage_encode(self, stage_min, stage_max, curr_char):
+        """
+        Processing a stage in the encoding/decoding process.
+        """
+        stage_domain = stage_max - stage_min
+        term_prob = Decimal(self.probability_table[curr_char])
+        stage_min = Decimal(self.prefex_sum[curr_char]) * stage_domain + stage_min
+        stage_max = term_prob * stage_domain + stage_min
+            
+        return stage_min, stage_max
     
     def _create_frequency_table(self, message):
         """
@@ -67,25 +88,22 @@ class ArithmeticEncoding:
         Encodes a message.
         """
 
-        encoder = []
+        #encoder = []
 
         start = Decimal(0.0)
         end = Decimal(1.0)
 
         for curr_char in (message):
-            stage_probs = self._process_stage(start, end)
+            start, end = self._process_stage_encode(start, end, curr_char)
 
-            start = stage_probs[curr_char][0]
-            end = stage_probs[curr_char][1]
+            #encoder.append(stage_probs)
 
-            encoder.append(stage_probs)
+        #stage_probs = self._process_stage(start, end)
+        #encoder.append(stage_probs)
 
-        stage_probs = self._process_stage(start, end)
-        encoder.append(stage_probs)
+        #encoded_msg = self._get_encoded_value(encoder)
 
-        encoded_msg = self._get_encoded_value(encoder)
-
-        return encoder, encoded_msg
+        return (start + end) / 2
 
     def decode(self, encoded_msg, msg_length):
         """
@@ -99,19 +117,8 @@ class ArithmeticEncoding:
         stage_max = Decimal(1.0)
 
         for idx in range(msg_length):
-            stage_probs = self._process_stage(stage_min, stage_max)
 
-            for msg_term, value in stage_probs.items():
-                if encoded_msg >= value[0] and encoded_msg <= value[1]:
-                    break
-
+            msg_term, stage_min, stage_max = self._process_stage_decode(stage_min, stage_max, encoded_msg)
             decoded_msg = decoded_msg + msg_term
-            stage_min = stage_probs[msg_term][0]
-            stage_max = stage_probs[msg_term][1]
 
-            decoder.append(stage_probs)
-
-        stage_probs = self._process_stage(stage_min, stage_max)
-        decoder.append(stage_probs)
-
-        return decoder, decoded_msg
+        return decoded_msg
