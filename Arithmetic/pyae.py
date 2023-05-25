@@ -7,8 +7,8 @@ class ArithmeticEncoding:
     ArithmeticEncoding is a class for building arithmetic encoding.
     """
 
-    def __init__(self , message):
-        getcontext().prec = 16
+    def __init__(self , message , precsion):
+        getcontext().prec = precsion
         self.probability_table = self._get_probability_table(self._create_frequency_table(message))
         self.prefex_sum = self._get_prefex_sum()
 
