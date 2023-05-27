@@ -11,3 +11,6 @@ out/
 .code-workspace
 
 Arithmetic/input.txt
+Arithmetic/encoded.bin
+Arithmetic/output.txt
+__pycache__/
