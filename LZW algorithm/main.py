@@ -6,7 +6,7 @@ import time
 
 BYTES_CHUNK = 3
 DICTIONARY_SIZE = 2 ** (BYTES_CHUNK * 8) - 1
-print("DICTIONARY_SIZE= ",DICTIONARY_SIZE)
+print("DICTIONARY_SIZE =",DICTIONARY_SIZE)
 
 
 def compress_lzw(data):
@@ -37,7 +37,6 @@ def decompress_lzw(data):
             entry = dictionary[curr]
         elif curr == len(dictionary):
             entry = prev + prev[0]
-            print("Entry==> ", entry)
         else:
             raise ValueError("Invalid compressed data")
         result += entry
@@ -54,10 +53,12 @@ output_file = 'output_file.txt'
 # read input file
 with open(input_file, 'r') as f:
     data = f.read()
+
+start_time = time.time()
+print("Compression")
 # compress data using LZW algorithm
 compressed_data = compress_lzw(data)
 # Start timer
-start_time = time.time()
 # write compressed data to compressed file
 with open(compressed_file, 'wb') as f:
     for code in compressed_data:
@@ -73,6 +74,7 @@ with open(compressed_file, 'rb') as f:
         code = int.from_bytes(code, byteorder='big')
         compressed_data.append(code)
 
+print("Decompression")
 # decompress data using LZW algorithm
 decompressed_data = decompress_lzw(compressed_data)
 
