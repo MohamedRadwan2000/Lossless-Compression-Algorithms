@@ -67,6 +67,7 @@ class ArithmeticEncoding:
         """
         frequency_table = {}
         for char in message:
+            char = char.to_bytes(1, 'big')
             frequency_table[char] = frequency_table.get(char, 0) + 1
 
         return frequency_table
@@ -82,6 +83,7 @@ class ArithmeticEncoding:
         end = Decimal(1.0)
 
         for curr_char in (message):
+            curr_char = curr_char.to_bytes(1, 'big')
             start, end = self._process_stage_encode(start, end, curr_char)
 
         return (start + end) / 2

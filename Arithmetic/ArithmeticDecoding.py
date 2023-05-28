@@ -8,11 +8,10 @@ class ArithmeticDecoding:
     ArithmeticEncoding is a class for building arithmetic encoding.
     """
 
-    def __init__(self , probability_table , precsion, msg_length):
+    def __init__(self , probability_table , precsion):
         getcontext().prec = precsion
         self.probability_table = probability_table
         self.prefex_sum, _ = ArithmeticEncoding.get_prefex_sum(self.probability_table )
-        self.msg_length = msg_length
 
 
     def _process_stage_decode(self, stage_min, stage_max, encoded_msg):
@@ -30,18 +29,18 @@ class ArithmeticDecoding:
                 return msg_term, start, end
                 
 
-    def decode(self, encoded_msg):
+    def decode(self, encoded_msg, msg_length):
         """
         Decodes a message.
         """
-        decoded_msg = ""
+        decoded_msg = []
 
         stage_min = Decimal(0.0)
         stage_max = Decimal(1.0)
 
-        for idx in range(self.msg_length):
+        for idx in range(msg_length):
 
             msg_term, stage_min, stage_max = self._process_stage_decode(stage_min, stage_max, encoded_msg)
-            decoded_msg = decoded_msg + msg_term
+            decoded_msg.append(msg_term)
 
         return decoded_msg
