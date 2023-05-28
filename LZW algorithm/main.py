@@ -4,6 +4,10 @@ import os
 import bitarray
 import time
 
+BYTES_CHUNK = 3
+DICTIONARY_SIZE = 2 ** (BYTES_CHUNK * 8) - 1
+print("DICTIONARY_SIZE= ",DICTIONARY_SIZE)
+
 
 def compress_lzw(data):
     dictionary = {chr(i): i for i in range(256)}
@@ -14,8 +18,9 @@ def compress_lzw(data):
         if concat in dictionary:
             prev = concat
         else:
+            if len(dictionary) < DICTIONARY_SIZE:
+                dictionary[concat] = len(dictionary)
             result.append(dictionary[prev])
-            dictionary[concat] = len(dictionary)
             prev = current
     if prev:
         result.append(dictionary[prev])
@@ -36,8 +41,8 @@ def decompress_lzw(data):
         else:
             raise ValueError("Invalid compressed data")
         result += entry
-
-        dictionary[len(dictionary)] = str(prev) + entry[0]
+        if len(dictionary) < DICTIONARY_SIZE:
+            dictionary[len(dictionary)] = str(prev) + entry[0]
         prev = entry
     return "".join(result)
 
@@ -56,13 +61,13 @@ start_time = time.time()
 # write compressed data to compressed file
 with open(compressed_file, 'wb') as f:
     for code in compressed_data:
-        f.write(code.to_bytes(4, byteorder='big'))
+        f.write(code.to_bytes(BYTES_CHUNK, byteorder='big'))
 
 # read compressed data from compressed file
 with open(compressed_file, 'rb') as f:
     compressed_data = []
     while True:
-        code = f.read(4)
+        code = f.read(BYTES_CHUNK)
         if not code:
             break
         code = int.from_bytes(code, byteorder='big')
@@ -79,11 +84,11 @@ end_time = time.time()
 
 # Calculate elapsed time
 elapsed_time = end_time - start_time
-print("Elapsed time: ", elapsed_time)
+print("Elapsed time: ", elapsed_time," seconds")
 print("Is the Decompressed file equals the Original file? ", filecmp.cmp(input_file, output_file))
 
 original_file_size = os.path.getsize(input_file)
 compressed_file_size = os.path.getsize(compressed_file)
-ratio = (compressed_file_size/original_file_size)
+ratio = (compressed_file_size / original_file_size)
 
 print(f"Compression Ratio = :{ratio:.2%}")
