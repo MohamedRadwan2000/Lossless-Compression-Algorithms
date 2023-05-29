@@ -30,7 +30,7 @@ def test (original_file, decoded_file):
     if decoded == original_message:
         print("menio is the best")
     else:
-        print("fuck menio")
+        print("try again")
  
 decoded = []
 

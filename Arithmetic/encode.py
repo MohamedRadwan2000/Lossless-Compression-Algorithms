@@ -1,4 +1,5 @@
 from decimal import Decimal
+import random
 from ArithmeticDecoding import ArithmeticDecoding
 
 from ArithmeticEncoding import ArithmeticEncoding
@@ -15,18 +16,24 @@ def convert_decimal_to_bytes(encoded_msg):
 
 def choose_message_size(original_msg, AE, PRECSION):
     AD = ArithmeticDecoding(AE.probability_table , PRECSION)
-    for i in range(86, 30, -1):
+    for i in range(150, 20, -1):
         flag = False
-        end = min(10000, len(original_msg))
-        for j in range(0,end , i):
-            #print(j)
-            temp_original = original_msg[j:j+i]
+        rang = (int)(len(original_msg) / i)
+        end = min(1000, rang)
+        #max_idx = 0
+        for j in range(0,end):
+            idx = random.randint(0, rang)
+            #print(idx)
+            #max_idx = max(idx, max_idx)
+            temp_original = original_msg[idx:idx+i]
             temp_decoded = b''.join(AD.decode(AE.encode(temp_original), i)[0:len(temp_original)])
-            if j + i >= end and temp_decoded == temp_original:
+            if temp_decoded == temp_original:
                 flag = True
             elif temp_decoded != temp_original:
+                flag = False
                 break
         if flag:
+            #print(max_idx)
             return i
 
 
