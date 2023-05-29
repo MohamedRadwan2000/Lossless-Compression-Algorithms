@@ -4,9 +4,11 @@ import os
 import bitarray
 import time
 
+RESET = False
 BYTES_CHUNK = 3
 DICTIONARY_SIZE = 2 ** (BYTES_CHUNK * 8) - 1
-print("DICTIONARY_SIZE =",DICTIONARY_SIZE)
+print("DICTIONARY_SIZE =", BYTES_CHUNK, " Bytes")
+print("Dictionary Reset :", RESET)
 
 
 def compress_lzw(data):
@@ -18,10 +20,13 @@ def compress_lzw(data):
         if concat in dictionary:
             prev = concat
         else:
-            if len(dictionary) < DICTIONARY_SIZE:
-                dictionary[concat] = len(dictionary)
             result.append(dictionary[prev])
             prev = current
+            if len(dictionary) < DICTIONARY_SIZE:
+                dictionary[concat] = len(dictionary)
+            else:
+                if RESET:
+                    dictionary = {chr(i): i for i in range(256)}
     if prev:
         result.append(dictionary[prev])
     return result
@@ -42,6 +47,9 @@ def decompress_lzw(data):
         result += entry
         if len(dictionary) < DICTIONARY_SIZE:
             dictionary[len(dictionary)] = str(prev) + entry[0]
+        else:
+            if RESET:
+                dictionary = {i: chr(i) for i in range(256)}
         prev = entry
     return "".join(result)
 
@@ -55,10 +63,13 @@ with open(input_file, 'r') as f:
     data = f.read()
 
 start_time = time.time()
-print("Compression")
+print("Compressing file")
+
 # compress data using LZW algorithm
 compressed_data = compress_lzw(data)
-# Start timer
+compression_time = time.time() - start_time
+print("Compression elapsed time = ", compression_time, "seconds")
+
 # write compressed data to compressed file
 with open(compressed_file, 'wb') as f:
     for code in compressed_data:
@@ -74,10 +85,13 @@ with open(compressed_file, 'rb') as f:
         code = int.from_bytes(code, byteorder='big')
         compressed_data.append(code)
 
-print("Decompression")
+print("Decompressing")
 # decompress data using LZW algorithm
+start_time = time.time()
 decompressed_data = decompress_lzw(compressed_data)
-
+decompression_time = time.time() - start_time
+print("Decompression elapsed time = ", decompression_time, "seconds")
+print("Total elapsed time =", compression_time + decompression_time)
 # write decompressed data to output file
 with open(output_file, 'w') as f:
     f.write(decompressed_data)
@@ -85,12 +99,10 @@ with open(output_file, 'w') as f:
 end_time = time.time()
 
 # Calculate elapsed time
-elapsed_time = end_time - start_time
-print("Elapsed time: ", elapsed_time," seconds")
 print("Is the Decompressed file equals the Original file? ", filecmp.cmp(input_file, output_file))
 
 original_file_size = os.path.getsize(input_file)
 compressed_file_size = os.path.getsize(compressed_file)
 ratio = (compressed_file_size / original_file_size)
 
-print(f"Compression Ratio = :{ratio:.2%}")
+print(f"Compression Ratio = ", ratio, " seconds")
